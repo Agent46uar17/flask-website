@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 # ================== CONFIG ==================
 
-API_KEY = "PUT_YOUR_PTERODACTYL_API_KEY_HERE"
+API_KEY = "ptlc_M7WDTQuHVtSSJGMIvzHzSefbIOmwsJHinbmjjUhsFut"
 SERVER_ID = "77415725"
 
 HEADERS = {
