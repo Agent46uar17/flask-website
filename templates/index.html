@@ -8,7 +8,7 @@
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 
-  <!-- INLINE CSS (merged) -->
+  <!-- INLINE CSS (your original, untouched) -->
   <style>
     * {
       margin: 0;
@@ -235,11 +235,24 @@
   </div>
 </section>
 
+<!-- 🔥 LIVE STATS SECTION (ONLY THIS CHANGED) -->
 <section id="stats" class="stats">
-  <div class="stat"><h3>24×7</h3><p>Uptime</p></div>
-  <div class="stat"><h3>10K+</h3><p>Drops Farmed</p></div>
-  <div class="stat"><h3>99.9%</h3><p>Success Rate</p></div>
-  <div class="stat"><h3>Fast</h3><p>Detection</p></div>
+  <div class="stat">
+    <h3 id="status">LOADING</h3>
+    <p>Status</p>
+  </div>
+  <div class="stat">
+    <h3 id="cpu">0%</h3>
+    <p>CPU</p>
+  </div>
+  <div class="stat">
+    <h3 id="ram">0 MB</h3>
+    <p>RAM</p>
+  </div>
+  <div class="stat">
+    <h3 id="disk">0 MB</h3>
+    <p>Disk</p>
+  </div>
 </section>
 
 <section id="commands" class="section">
@@ -274,6 +287,36 @@
   <p>© 2026 LootBot. All rights reserved.</p>
   <p class="muted">Not affiliated with Twitch or Discord.</p>
 </footer>
+
+<!-- 🔁 LIVE UPDATE SCRIPT -->
+<script>
+async function fetchStats() {
+  try {
+    const res = await fetch("/stats");
+    const data = await res.json();
+
+    document.getElementById("status").innerText = data.state;
+    document.getElementById("cpu").innerText = data.cpu.toFixed(1) + "%";
+    document.getElementById("ram").innerText =
+      data.ram.toFixed(1) + " / " + data.mem_limit + " MB";
+    document.getElementById("disk").innerText =
+      data.disk.toFixed(1) + " / " + data.disk_limit + " MB";
+
+    if (data.state === "RUNNING") {
+      document.getElementById("status").style.color = "#22c55e";
+    } else {
+      document.getElementById("status").style.color = "#ef4444";
+    }
+
+  } catch (e) {
+    document.getElementById("status").innerText = "OFFLINE";
+    document.getElementById("status").style.color = "#ef4444";
+  }
+}
+
+fetchStats();
+setInterval(fetchStats, 10000);
+</script>
 
 </body>
 </html>
