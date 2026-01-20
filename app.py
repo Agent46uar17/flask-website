@@ -6,7 +6,7 @@ app = Flask(__name__)
 # ================== CONFIG ==================
 
 API_KEY = "PUT_YOUR_PTERODACTYL_API_KEY_HERE"
-SERVER_ID = "cd6f4d9f"
+SERVER_ID = "77415725"
 
 HEADERS = {
     "Authorization": f"Bearer {API_KEY}",
