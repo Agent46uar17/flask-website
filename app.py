@@ -1,9 +1,11 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, jsonify
+from flask_cors import CORS
 import requests
+import os
 
 app = Flask(__name__)
+CORS(app)  # allow requests from WordPress
 
-# ================== CONFIG ==================
 
 API_KEY = "ptlc_M7WDTQuHVtSSJGMIvzHzSefbIOmwsJHinbmjjUhsFut"
 SERVER_ID = "77415725"
@@ -17,19 +19,16 @@ HEADERS = {
 SERVER_URL = f"https://gp.laag.in/api/client/servers/{SERVER_ID}"
 RESOURCES_URL = f"{SERVER_URL}/resources"
 
-# ================== ROUTES ==================
 
-# Main website
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return "LootBot API is running"
 
-# Live stats API (used by website JS)
 @app.route("/stats")
 def stats():
     try:
-        limits = requests.get(SERVER_URL, headers=HEADERS, timeout=3).json()
-        res = requests.get(RESOURCES_URL, headers=HEADERS, timeout=3).json()
+        limits = requests.get(SERVER_URL, headers=HEADERS, timeout=5).json()
+        res = requests.get(RESOURCES_URL, headers=HEADERS, timeout=5).json()
 
         mem_limit = limits["attributes"]["limits"]["memory"]
         disk_limit = limits["attributes"]["limits"]["disk"]
@@ -38,17 +37,17 @@ def stats():
 
         return jsonify({
             "state": res["attributes"]["current_state"].upper(),
-            "cpu": r["cpu_absolute"],
-            "ram": r["memory_bytes"] / 1024 / 1024,
-            "disk": r["disk_bytes"] / 1024 / 1024,
+            "cpu": round(r["cpu_absolute"], 1),
+            "ram": round(r["memory_bytes"] / 1024 / 1024, 1),
+            "disk": round(r["disk_bytes"] / 1024 / 1024, 1),
             "mem_limit": mem_limit,
             "disk_limit": disk_limit,
-            "rx": r["network_rx_bytes"] / 1024 / 1024,
-            "tx": r["network_tx_bytes"] / 1024 / 1024
+            "rx": round(r["network_rx_bytes"] / 1024 / 1024, 1),
+            "tx": round(r["network_tx_bytes"] / 1024 / 1024, 1)
         })
 
     except Exception as e:
-        return jsonify({"error": "offline"}), 500
+        return jsonify({"state": "OFFLINE"}), 500
 
 
 # ================== RUN ==================
