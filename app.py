@@ -2,6 +2,11 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 import requests
 import os
+import time
+
+_last_data = None
+_last_fetch = 0
+
 
 app = Flask(__name__)
 CORS(app)  # allow requests from WordPress
@@ -26,6 +31,12 @@ def home():
 
 @app.route("/stats")
 def stats():
+    global _last_data, _last_fetch
+
+    # cache for 3 seconds
+    if _last_data and time.time() - _last_fetch < 3:
+        return jsonify(_last_data)
+
     try:
         limits = requests.get(SERVER_URL, headers=HEADERS, timeout=5).json()
         res = requests.get(RESOURCES_URL, headers=HEADERS, timeout=5).json()
@@ -35,7 +46,7 @@ def stats():
 
         r = res["attributes"]["resources"]
 
-        return jsonify({
+        data = {
             "state": res["attributes"]["current_state"].upper(),
             "cpu": round(r["cpu_absolute"], 1),
             "ram": round(r["memory_bytes"] / 1024 / 1024, 1),
@@ -43,11 +54,18 @@ def stats():
             "mem_limit": mem_limit,
             "disk_limit": disk_limit,
             "rx": round(r["network_rx_bytes"] / 1024 / 1024, 1),
-            "tx": round(r["network_tx_bytes"] / 1024 / 1024, 1)
-        })
+            "tx": round(r["network_tx_bytes"] / 1024 / 1024, 1),
+            "ts": int(time.time())  # timestamp (for debugging)
+        }
 
-    except Exception as e:
+        _last_data = data
+        _last_fetch = time.time()
+
+        return jsonify(data)
+
+    except Exception:
         return jsonify({"state": "OFFLINE"}), 500
+
 
 
 # ================== RUN ==================
